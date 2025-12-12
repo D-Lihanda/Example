@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\JobPosted;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use App\Livewire\Jobs;
 use App\Models\Job;
 use Illuminate\Http\Request;
@@ -68,12 +73,16 @@ class JobController extends Controller
         ]);
 
         //creating the job in database
-        Job::create([
+        $job = Job::create([
             'title' => request('title'),
             'salary' => request('salary'),
             'status' => request('status'),
             'employer_id' => 1 // Temporary static employer ID
         ]);
+
+        Mail::to($job->employer->user)->queue(
+        new JobPosted($job)
+    );
 
         //to enable viewing of the new created job
         
@@ -85,7 +94,8 @@ class JobController extends Controller
     }
     public function update(Job $job)
     {
-            //validate
+        Gate::authorize('edit-job', $job);
+
         request()->validate([
             'title' =>['required', 'min:3'],
             'salary' => ['required'],
@@ -103,6 +113,8 @@ class JobController extends Controller
     }
     public function destroy(Job $job)
     {
+        Gate::authorize('edit-job', $job);
+
         $job->delete();
 
         return redirect('/jobs');

@@ -17,11 +17,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = [];// No guarded attributes, all are mass assignable. to avoid to many attributes
 
     /**
      * The attributes that should be hidden for serialization.
